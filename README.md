@@ -1,6 +1,6 @@
 # **Backend of Elo Flipperz**
 
-It's a game where to players flip a coin to gain elo
+It's a game where two players flip a coin to gain elo
 
 ## **Why?**
 

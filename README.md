@@ -12,7 +12,7 @@ I wanted to learn Go lang so started this project
 
 To run this project, you will need to add the following environment variables to your .env file
 
-`API_KEY`
+`MONGODB_URI`
 
 after that run this project with
 

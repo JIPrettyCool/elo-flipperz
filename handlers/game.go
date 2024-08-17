@@ -1,5 +1,6 @@
 package handlers
 
+/* //Used for testing
 import (
     "context"
     "math/rand"
@@ -55,3 +56,4 @@ func FlipCoin(w http.ResponseWriter, r *http.Request) {
 
     json.NewEncoder(w).Encode(GameResult{Success: outcome == 1, Elo: player.Elo, Outcome: outcome})
 }
+*/

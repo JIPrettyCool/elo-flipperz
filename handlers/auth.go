@@ -41,9 +41,29 @@ func Login(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    _, err = collection.UpdateOne(
+        context.TODO(),
+        bson.M{"_id": player.ID},
+        bson.M{"$set": bson.M{"last_login_date": time.Now()}},
+    )
+    if err != nil {
+        http.Error(w, "Error updating last login date", http.StatusInternalServerError)
+        return
+    }
+
     token, err := auth.GenerateToken(data.Username)
     if err != nil {
         http.Error(w, "Error generating token", http.StatusInternalServerError)
+        return
+    }
+
+    _, err = collection.UpdateOne(
+        context.TODO(),
+        bson.M{"_id": player.ID},
+        bson.M{"$set": bson.M{"queue_token": token}},
+    )
+    if err != nil {
+        http.Error(w, "Error updating token", http.StatusInternalServerError)
         return
     }
 
@@ -77,11 +97,13 @@ func Register(w http.ResponseWriter, r *http.Request) {
     }
 
     player := models.Player{
-        ID:       primitive.NewObjectID(),
-        Username: data.Username,
-        Password: data.Password,
-        Elo:      1000,
-        RegisterDate: time.Now(),
+        ID:             primitive.NewObjectID(),
+        Username:       data.Username,
+        Password:       data.Password,
+        Elo:            1000,
+        RegisterDate:   time.Now(),
+        LastLoginDate:  time.Time{},
+        QueueToken:     "",
     }
 
     _, err = collection.InsertOne(context.TODO(), player)

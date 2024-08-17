@@ -17,7 +17,7 @@ func ValidateToken(next http.HandlerFunc) http.HandlerFunc {
         token = strings.TrimPrefix(token, "Bearer ")
         username, err := auth.ValidateToken(token)
         if err != nil {
-            http.Error(w, "Token not right", http.StatusUnauthorized)
+            http.Error(w, "Invalid token", http.StatusUnauthorized)
             return
         }
 

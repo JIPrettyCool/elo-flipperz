@@ -11,4 +11,6 @@ type Player struct {
 	Password	string             `bson:"password"`
     Elo       int                `bson:"elo"`
     RegisterDate time.Time          `bson:"register_date"`
+    LastLoginDate time.Time          `bson:"last_login_date"`
+    QueueToken  string             `bson:"queue_token"`
 }

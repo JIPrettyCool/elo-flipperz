@@ -9,7 +9,7 @@ import (
     "strings"
 
     "elo-flipperz/db"
-	"elo-flipperz/auth"
+    "elo-flipperz/auth"
     "elo-flipperz/models"
     "go.mongodb.org/mongo-driver/bson"
 )
@@ -47,32 +47,42 @@ func QueuePlayer(w http.ResponseWriter, r *http.Request) {
     queueLock.Unlock()
 
     if len(queue) >= 2 {
-        go StartMatch()
+        result := StartMatch()
+        json.NewEncoder(w).Encode(result)
+    } else {
+        json.NewEncoder(w).Encode(map[string]string{"status": "queued"})
     }
-
-    json.NewEncoder(w).Encode(map[string]string{"status": "queued"})
 }
 
-func StartMatch() {
+func StartMatch() map[string]interface{} {
     queueLock.Lock()
     defer queueLock.Unlock()
-
-    if len(queue) < 2 {
-        return
-    }
-
     player1 := queue[0]
     player2 := queue[1]
     queue = queue[2:]
+
     if player1.Elo == 0 || player2.Elo == 0 {
-        return
+        return map[string]interface{}{"status": "Bro you can't play with 0 Elo"}
     }
     if player1 == player2 {
-        return
+        return map[string]interface{}{"status": "same player"}
     }
 
     winner, loser := determineWinner(player1, player2)
     updateElo(winner, loser)
+
+    return map[string]interface{}{
+        "status": "match completed",
+        "winner": map[string]interface{}{
+            "username": winner.Username,
+            "elo":      winner.Elo,
+        },
+        "loser": map[string]interface{}{
+            "username": loser.Username,
+            "elo":      loser.Elo,
+        },
+        "result": 1,
+    }
 }
 
 func determineWinner(player1, player2 models.Player) (models.Player, models.Player) {

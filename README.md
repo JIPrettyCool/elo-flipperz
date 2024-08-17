@@ -1,6 +1,6 @@
 # **Backend of Elo Flipperz**
 
-It's a game where to players flip a coin to gain elo
+It's a game where two players flip a coin to gain elo
 
 ## **Why?**
 
@@ -12,7 +12,7 @@ I wanted to learn Go lang so started this project
 
 To run this project, you will need to add the following environment variables to your .env file
 
-`API_KEY`
+`MONGODB_URI`
 
 after that run this project with
 

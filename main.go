@@ -19,18 +19,16 @@ func main() {
     mux.Handle("/register", middleware.RateLimit(http.HandlerFunc(handlers.Register)))
     mux.Handle("/login", middleware.RateLimit(http.HandlerFunc(handlers.Login)))
     mux.Handle("/leaderboard", middleware.RateLimit(http.HandlerFunc(handlers.Leaderboard)))
+    mux.Handle("/matches/", middleware.RateLimit(http.HandlerFunc(handlers.HandleMatchResult)))
+    corsHandler := middleware.CORS(mux)
 
-
-     corsHandler := middleware.CORS(mux)
-
-     server := &http.Server{
-         Addr:         ":8080",
-         Handler:      corsHandler,
-         ReadTimeout:  10 * time.Second,
-         WriteTimeout: 10 * time.Second,
-         IdleTimeout:  60 * time.Second,
-     }
- 
-     log.Println("Starting server on :8080")
-     log.Fatal(server.ListenAndServe())
- }
+    server := &http.Server{
+        Addr:         ":8080",
+        Handler:      corsHandler,
+        ReadTimeout:  10 * time.Second,
+        WriteTimeout: 10 * time.Second,
+        IdleTimeout:  60 * time.Second,
+    }
+    log.Println("Starting server on :8080")
+    log.Fatal(server.ListenAndServe())
+}

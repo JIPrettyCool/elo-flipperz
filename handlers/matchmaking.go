@@ -1,15 +1,17 @@
 package handlers
 
 import (
-    "net/http"
-    "sync"
-    "math/rand"
     "context"
+    "fmt"
     "encoding/json"
+    "math/rand"
+    "net/http"
     "strings"
+    "sync"
+    "time"
 
-    "elo-flipperz/db"
     "elo-flipperz/auth"
+    "elo-flipperz/db"
     "elo-flipperz/models"
     "go.mongodb.org/mongo-driver/bson"
 )
@@ -48,15 +50,58 @@ func QueuePlayer(w http.ResponseWriter, r *http.Request) {
 
     if len(queue) >= 2 {
         result := StartMatch()
-        json.NewEncoder(w).Encode(result)
+        matchID := storeMatchResult(result)
+        json.NewEncoder(w).Encode(map[string]interface{}{
+            "status":    "match completed",
+            "match_id":  matchID,
+            "result":    result,
+        })
     } else {
         json.NewEncoder(w).Encode(map[string]string{"status": "queued"})
     }
 }
 
+func storeMatchResult(result map[string]interface{}) string {
+    winner, ok1 := result["winner"].(models.Player)
+    loser, ok2 := result["loser"].(models.Player)
+
+    fmt.Println(winner, ok1, loser, ok2) // TODO: remove this add debug messages instead
+    
+    matchID := generateMatchID(winner.Username, loser.Username)
+    
+    match := models.Match{
+        ID:        matchID,
+        Winner:    winner, // TODO: change it to Username before full build
+        Loser:     loser, // TODO: change it to Username before full build
+        EloBefore: map[string]int{
+            winner.Username: result["elo_before_winner"].(int),
+            loser.Username:  result["elo_before_loser"].(int),
+        },
+        EloAfter: map[string]int{
+            winner.Username: winner.Elo + 10,
+            loser.Username:  loser.Elo - 10,
+        },
+        MatchTime: time.Now(),
+    }
+
+    collection := db.GetCollection("matches")
+    _, err := collection.InsertOne(context.TODO(), match)
+    if err != nil {
+        panic("Failed to insert match: " + err.Error())
+    }
+
+    return matchID
+}
+
+func generateMatchID(winnerUsername, loserUsername string) string {
+    timestamp := time.Now().Format("20060102150405")
+    return winnerUsername + "_" + loserUsername + "_" + timestamp
+}
+
 func StartMatch() map[string]interface{} {
     queueLock.Lock()
     defer queueLock.Unlock()
+    
     player1 := queue[0]
     player2 := queue[1]
     queue = queue[2:]
@@ -69,19 +114,18 @@ func StartMatch() map[string]interface{} {
     }
 
     winner, loser := determineWinner(player1, player2)
+    
+    eloBeforeWinner := winner.Elo
+    eloBeforeLoser := loser.Elo
+
     updateElo(winner, loser)
 
     return map[string]interface{}{
-        "status": "match completed",
-        "winner": map[string]interface{}{
-            "username": winner.Username,
-            "elo":      winner.Elo,
-        },
-        "loser": map[string]interface{}{
-            "username": loser.Username,
-            "elo":      loser.Elo,
-        },
-        "result": 1,
+        "status":             "match completed",
+        "winner":             winner,
+        "loser":              loser,
+        "elo_before_winner":  eloBeforeWinner,
+        "elo_before_loser":   eloBeforeLoser,
     }
 }
 

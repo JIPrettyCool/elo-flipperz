@@ -32,7 +32,7 @@ POST to `http://localhost:8080/register`
 ```
 
 - **Login**
-GET `http://localhost:8080/login` to get queue token
+GET to `http://localhost:8080/login` to get queue token
 ```
 {
     "username": "BenDover",
@@ -44,9 +44,17 @@ POST to `http://localhost:8080/queue` with 2 different users to start match
 with the headers
 `Authorization: Bearer token_you_got_with_login`
 
+- **Matches**
+GET to `http://localhost:8080/matches/{id}` with id of match you got when you queued with second player to get match results
+
 - **Leaderboard**
 Visit `http://localhost:8080/leaderboard` to see Elo of players
 
+# **TODO**
+
+- [ ] Add winrate
+- [ ] Change match result winner to winner username only
+- [ ] Make front-end
 
 ## License
 
